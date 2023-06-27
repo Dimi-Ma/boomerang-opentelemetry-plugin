@@ -197,9 +197,9 @@ export default class OpenTelemetryTracingImpl {
         return new HttpTraceContextPropagator();
     }
   };
-  private beaconContextMap: Map<String, String>;
+  private beaconContextMap: Map<string, string> = new Map();
 
-  public setBeaconContextMap = (beaconContextMap: Map<String, String>) => {
+  public setBeaconContextMap = (beaconContextMap: Map<string, string>) => {
     this.beaconContextMap = beaconContextMap;
   }
 
@@ -260,6 +260,21 @@ export default class OpenTelemetryTracingImpl {
 
     // XMLHttpRequest Instrumentation for web plugin
     if (plugins_config?.instrument_xhr?.enabled !== false) {
+        const applyCustomAttributesOnSpanFn = plugins_config.instrument_xhr.applyCustomAttributesOnSpan
+
+        plugins_config.instrument_xhr.applyCustomAttributesOnSpan = (span, xhr) => {
+
+          const writeBeaconTagsToTraces = this.props.includeBeaconTags && this.beaconContextMap.size !== 0
+
+            //add beacon tags to spans if enabled
+            if (writeBeaconTagsToTraces) {
+              this.beaconContextMap.forEach((v, k) => {
+                span.setAttribute(k, v);
+              })
+            }
+            applyCustomAttributesOnSpanFn(span, xhr);
+          }
+
       instrumentations.push(new XMLHttpRequestInstrumentation(plugins_config.instrument_xhr));
     }
     else if (plugins?.instrument_xhr !== false) {

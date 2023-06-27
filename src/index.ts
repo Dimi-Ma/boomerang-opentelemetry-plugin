@@ -88,9 +88,6 @@ let beaconContextMap = new Map();
         window.BOOMR.subscribe('before_beacon', function(beaconContext: { [s: string]: any; } | ArrayLike<any>) {
           beaconContextMap = new Map(Object.entries(beaconContext))
           impl.setBeaconContextMap(beaconContextMap);
-
-          console.log("beaconContext Test: ", beaconContextMap)
-          beaconContextMap = new Map();
         });
       }
 
